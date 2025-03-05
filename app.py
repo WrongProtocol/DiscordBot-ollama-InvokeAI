@@ -1,6 +1,7 @@
 # Carmine Silano
 # Feb 4, 2025
 # A basic discord bot for providing access to ollama for gpt text and InvokeAI for image gen. 
+# and features for checking our work calendar. 
 
 import discord
 import requests
@@ -11,6 +12,7 @@ from dotenv import load_dotenv
 from ollama_query import query_ollama
 from invokeAI import create_hq
 from helpers import *
+from paymo_calendar import get_projects
 
 # Load secret environment variables
 load_dotenv('.env')
@@ -129,7 +131,23 @@ async def image_slash(interaction: discord.Interaction, prompt: str):
     image_file = discord.File(image_data, filename="generated.png")
     await interaction.followup.send(content="Here is your image:", file=image_file)
 
-
+@bot.tree.command(name="cal", description="Check the calendar for work")
+@discord.app_commands.describe(prompt="search term. leave blank to see all.")
+async def image_slash(interaction: discord.Interaction, prompt: str):
+    print(f"Slash command /cal: {prompt}")
+    await interaction.response.defer()
+    
+    filter = prompt.strip()
+    
+    if filter == "" or filter.lower() == "all":
+        # show all
+        resp = get_projects()
+    else:
+        # its a search name, so filter on that
+        resp = get_projects(filter)
+    
+    resp = "Results for " + prompt + "\n" + resp
+    await interaction.followup.send(resp)
 
 # Run the bot
 bot.run(DISCORD_TOKEN)
