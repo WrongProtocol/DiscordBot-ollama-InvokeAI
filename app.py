@@ -10,6 +10,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from ollama_query import query_ollama
 from invokeAI import create_hq
+from helpers import *
 
 # Load secret environment variables
 load_dotenv('.env')
@@ -40,14 +41,26 @@ async def on_ready():
     except Exception as e:
         print("Error syncing commands:", e)
 
-# Slash command for GPT queries
+
 @bot.tree.command(name="gpt", description="Ask dolphin3 a question")
 @discord.app_commands.describe(prompt="Ask dolphin3 a question")
 async def gpt_slash(interaction: discord.Interaction, prompt: str):
     print(f"Slash command /gpt: {prompt}")
     await interaction.response.defer()
+    
+    # Run the query in a thread (or adjust as needed if query_ollama is async)
     response_text = await asyncio.to_thread(query_ollama, prompt, 'gpt')
-    await interaction.followup.send(response_text)
+    
+    # If the response is short enough, send it directly.
+    if len(response_text) <= 1990:
+        await interaction.followup.send(response_text)
+    else:
+        # Otherwise, chunk the response and send each with a small delay.
+        chunks = chunk_message(response_text, limit=1990)
+        for chunk in chunks:
+            await interaction.followup.send(chunk)
+            await asyncio.sleep(1)  # delay between chunks
+
 
 # Slash command for writing voice overs or lyrics
 @bot.tree.command(name="write", description="Write voice overs or lyrics about your topic.")

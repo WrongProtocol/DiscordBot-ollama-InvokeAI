@@ -241,11 +241,11 @@ async def create_hq(prompt):
     queue_status = await queue.get_queue_status()
     # print(f"queue_status: {queue_status}\n\n")
     current_item = await queue.get_current_item()
-    print(f"current_item : { current_item }\n\n")
+    # print(f"current_item : { current_item }\n\n")
     itemId = current_item.item_id
     while True:
         status = await queue.get_queue_item(itemId)#.completed_at
-        print("image status:", status)
+        # print("image status:", status)
         
         if status.get('completed_at') is not None:
             break
@@ -254,11 +254,12 @@ async def create_hq(prompt):
    
     print("image done")
     lastImageCreatedHopefully = await images.list_image_dtos(offset=0, limit=1)
-    print(f"lastImageCreatedHopefully = {lastImageCreatedHopefully} \n\n")
+    #print(f"lastImageCreatedHopefully = {lastImageCreatedHopefully} \n\n")
     imgItem = lastImageCreatedHopefully.items[0]
     theImg = imgItem.image_name
-    print(f"theImg = {theImg} \n\n")
     imgUrl = imgItem.image_url
+    print(f"Finished: = http://127.0.0.1:9090/{imgUrl} \n\n")
+    
     #img = await images.get_full(theImg)
     response = requests.get("http://127.0.0.1:9090/" + imgUrl)
 
