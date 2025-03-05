@@ -1,3 +1,13 @@
+# Carmine Silano
+# Feb 5, 2025
+# This file demonstrates how to use the basic function of InvokeAI api to generate an image and download it. 
+# The payload config is pretty extensive based upon models that I already had installed on the machine. 
+# The best way to get your own payload config is to just generate an image in InvokeAI and then copy the Graph information after the render is complete. 
+# Use that as a template to connect all the dots for you. 
+# NOTE: There were two places in the invoke.api code that required me to bypass CursorPaginatedResults becaue it was blowing up
+#       due to malformed json.   I suppose the library isn't up to date any longer. I had to modify the library code to 
+#       for this to function without crashing. 
+
 import asyncio
 from invoke import Invoke
 from invoke.api import BaseModels, ModelType, QueueApi

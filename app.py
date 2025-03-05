@@ -1,3 +1,7 @@
+# Carmine Silano
+# Feb 4, 2025
+# A basic discord bot for providing access to ollama for gpt text and InvokeAI for image gen. 
+
 import discord
 import requests
 import os
