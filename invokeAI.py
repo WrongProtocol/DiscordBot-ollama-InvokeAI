@@ -268,7 +268,7 @@ async def create_hq(prompt):
     #img.show()
     return img_data
 
-async def main():
+async def test():
     invoke = Invoke()
 
     print("Waiting for invoke...")
@@ -282,4 +282,4 @@ async def main():
     
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(test())

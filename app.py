@@ -91,33 +91,38 @@ async def on_message(message: discord.Message):
     if message.author == bot.user:
         return
 
-    # Check if the message was sent in a channel named "test" and if the flag is enabled
-    if message.channel.name == "test" and respond_to_all and bot.user not in message.mentions:
+    if message.guild:
+
+        # Check if the message was sent in a channel named "test" and if the flag is enabled
+        if message.channel.name == "test" and respond_to_all and bot.user not in message.mentions:
+            
+            print(f"Responding to message in #test: {message.content}")
+            
+            # Grab the last 50 messages from the channel's history
+            messages = [msg async for msg in message.channel.history(limit=50)]
+            # Reverse the list to have chronological order
+            messages = list(reversed(messages))
+            # Create a context string in the format "Author: message"
+            context = "\n".join(f"{msg.author.display_name}: {msg.content}" for msg in messages)
+            # Append the current message as the new prompt with context
+            prompt_with_context = f"Chat history:\n{context}\n\nNew message: {message.content}\n\nResponse:"
+            
+            # Call query_ollama with the prompt that includes context (using 'gpt' mode)
+            response_text = await asyncio.to_thread(query_ollama, prompt_with_context, 'continuous_chat')
+            await message.channel.send(response_text)
         
-        print(f"Responding to message in #test: {message.content}")
+        # If the bot is mentioned, respond to the mention.
+        if bot.user in message.mentions:
+            
+            prompt = message.content.replace(f"<@!{bot.user.id}>", "").strip()
+            response_text = await asyncio.to_thread(query_ollama, prompt, 'respond_to_mention')
+            await message.channel.send(response_text)
+            
+            return
+    else:
+        # message is a direct message
+        print("received a direct message")
         
-        # Grab the last 50 messages from the channel's history
-        messages = [msg async for msg in message.channel.history(limit=50)]
-        # Reverse the list to have chronological order
-        messages = list(reversed(messages))
-        # Create a context string in the format "Author: message"
-        context = "\n".join(f"{msg.author.display_name}: {msg.content}" for msg in messages)
-        # Append the current message as the new prompt with context
-        prompt_with_context = f"Chat history:\n{context}\n\nNew message: {message.content}\n\nResponse:"
-        
-        # Call query_ollama with the prompt that includes context (using 'gpt' mode)
-        response_text = await asyncio.to_thread(query_ollama, prompt_with_context, 'continuous_chat')
-        await message.channel.send(response_text)
-    
-    # If the bot is mentioned, respond to the mention.
-    if bot.user in message.mentions:
-        
-        prompt = message.content.replace(f"<@!{bot.user.id}>", "").strip()
-        response_text = await asyncio.to_thread(query_ollama, prompt, 'respond_to_mention')
-        await message.channel.send(response_text)
-        
-        return
-    
     # Allow commands to be processed as well
     await bot.process_commands(message)
 
