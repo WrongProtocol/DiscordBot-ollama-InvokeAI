@@ -13,6 +13,7 @@ from ollama_query import query_ollama
 from invokeAI import create_hq
 from helpers import *
 from paymo_calendar import get_projects
+from rvc import *
 
 # Load secret environment variables
 load_dotenv('.env')
@@ -149,5 +150,22 @@ async def image_slash(interaction: discord.Interaction, prompt: str):
     resp = "Results for " + prompt + "\n" + resp
     await interaction.followup.send(resp)
 
+@bot.tree.command(name="speak", description="Convert text to speech and send the audio file")
+@discord.app_commands.describe(prompt="Enter text to convert to speech")
+async def speak_slash(interaction: discord.Interaction, prompt: str):
+    print(f"Slash command /speak: {prompt}")
+    # Defer the response since TTS generation might take some time.
+    await interaction.response.defer()
+    
+    # Await the asynchronous rvc_tts function directly.
+    audio_file_path = await rvc_tts(prompt)
+    
+    # Create a Discord File object from the returned audio file path.
+    audio_file = discord.File(audio_file_path, filename="fast_tts_output.mp3")
+    
+    # Send the audio file as a follow-up message.
+    await interaction.followup.send(file=audio_file)
+
+    
 # Run the bot
 bot.run(DISCORD_TOKEN)
