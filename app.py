@@ -7,6 +7,7 @@ import discord
 import requests
 import os
 import asyncio
+import tempfile
 from discord.ext import commands
 from dotenv import load_dotenv
 from ollama_query import query_ollama
@@ -166,6 +167,67 @@ async def speak_slash(interaction: discord.Interaction, prompt: str):
     # Send the audio file as a follow-up message.
     await interaction.followup.send(file=audio_file)
 
+@bot.tree.command(name="erika", description="Process an attached audio file using rvc_erika and return the output audio file")
+@discord.app_commands.describe(
+                    file="Attach an audio file to process",
+                    pitch_adjust="Enter an integer value for pitch adjustment (default: 0)")
+async def erika_slash(interaction: discord.Interaction, file: discord.Attachment, pitch_adjust:int = 0):
+    print(f"Slash command /erika invoked with file: {file.filename}")
     
-# Run the bot
+    # Defer the response while processing.
+    await interaction.response.defer()
+    
+    # Download the attached file as bytes.
+    file_bytes = await file.read()
+    
+    # Write the downloaded bytes to a temporary file.
+    suffix = os.path.splitext(file.filename)[1]  # Keep the original file extension
+    with tempfile.NamedTemporaryFile(delete=False, prefix="erikaVO-", suffix=suffix) as tmp:
+        tmp.write(file_bytes)
+        tmp_input_path = tmp.name
+
+    # Call rvc_erika (async) with the temporary file.
+    output_audio_path = await rvc_erika(tmp_input_path, pitch_adjust)
+    
+    # remove the temporary input file.
+    os.remove(tmp_input_path)
+    
+    # Create a Discord File object from the output audio file.
+    audio_file = discord.File(output_audio_path, filename=os.path.basename(output_audio_path))
+    
+    # Send the output audio file back to the Discord channel.
+    await interaction.followup.send(file=audio_file)
+
+@bot.tree.command(name="cyrone", description="Process an attached audio file using rvc_cyrone and return the output audio file")
+@discord.app_commands.describe(
+                    file="Attach an audio file to process",
+                    pitch_adjust="Enter an integer value for pitch adjustment (default: 0)")
+async def cyrone_slash(interaction: discord.Interaction, file: discord.Attachment, pitch_adjust:int = 0):
+    print(f"Slash command /cyrone invoked with file: {file.filename}")
+    
+    # Defer the response while processing.
+    await interaction.response.defer()
+    
+    # Download the attached file as bytes.
+    file_bytes = await file.read()
+    
+    # Write the downloaded bytes to a temporary file.
+    suffix = os.path.splitext(file.filename)[1]  # Keep the original file extension
+    with tempfile.NamedTemporaryFile(delete=False, prefix="cyroneVO-", suffix=suffix) as tmp:
+        tmp.write(file_bytes)
+        tmp_input_path = tmp.name
+
+    # Call rvc_cyrone (async) with the temporary file.
+    output_audio_path = await rvc_cyrone(tmp_input_path, pitch_adjust)
+    
+    # remove the temporary input file.
+    os.remove(tmp_input_path)
+    
+    # Create a Discord File object from the output audio file.
+    audio_file = discord.File(output_audio_path, filename=os.path.basename(output_audio_path))
+    
+    # Send the output audio file back to the Discord channel.
+    await interaction.followup.send(file=audio_file)
+
+# Finally, run the bot
 bot.run(DISCORD_TOKEN)

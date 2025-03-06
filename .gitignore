@@ -4,3 +4,4 @@ __pycache/
 .env
 *.__pycache
 *.pyc
+models/
